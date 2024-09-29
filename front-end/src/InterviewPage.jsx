@@ -7,26 +7,33 @@ function InterviewPage() {
   const intervieweeCanvasRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [animationId, setAnimationId] = useState(null);
+  const [animationId, setAnimationId] = useState(null); 
   const [stream, setStream] = useState(null);
+  const [showRecordingText, setShowRecordingText] = useState(false);
 
   // Load and play interviewer's pre-recorded audio and show waveform
   useEffect(() => {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const loadInterviewerAudio = async () => {
       try {
-        const audioElement = new Audio('/assets/demo.wav'); // Ensure the correct file path
+        const response = await fetch('/assets/demo.wav'); // Ensure the correct file path
+        if (!response.ok) {
+          throw new Error('Failed to fetch audio file');
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-        audioElement.play(); // Auto-play the audio when the page is loaded
+        const source = audioContext.createBufferSource();
+        source.buffer = audioBuffer;
 
         const analyser = audioContext.createAnalyser();
         analyser.fftSize = 2048;
-        const source = audioContext.createMediaElementSource(audioElement);
-        source.connect(analyser);
-        analyser.connect(audioContext.destination);
-
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
+
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+        source.start(); 
 
         const canvas = interviewerCanvasRef.current;
         const canvasCtx = canvas.getContext('2d');
@@ -58,7 +65,7 @@ function InterviewPage() {
           canvasCtx.lineTo(canvas.width, canvas.height / 2);
           canvasCtx.stroke();
 
-          requestAnimationFrame(drawWaveform); // Keep animating the waveform
+          requestAnimationFrame(drawWaveform);
         };
 
         drawWaveform();
@@ -90,8 +97,8 @@ function InterviewPage() {
     const canvasCtx = canvas.getContext('2d');
 
     const drawWaveform = () => {
-      const animation = requestAnimationFrame(drawWaveform); // Store animation ID
-      setAnimationId(animation); // Keep track of animation frame
+      const animation = requestAnimationFrame(drawWaveform); 
+      setAnimationId(animation); 
       analyser.getByteTimeDomainData(dataArray);
 
       canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
@@ -121,6 +128,7 @@ function InterviewPage() {
 
     drawWaveform();
     setIsRecording(true);
+    setShowRecordingText(true); // Show recording text when recording starts
     mediaRecorderInstance.start();
   };
 
@@ -138,11 +146,19 @@ function InterviewPage() {
     }
 
     setIsRecording(false);
+    setShowRecordingText(false); // Hide recording text when recording stops
   };
 
   return (
-    <div className="text-center mt-20">
+    <div className="text-center mt-20 relative">
       <h1 className="text-4xl font-bold mb-8">Welcome, {location.state.name}. Let's start your interview!</h1>
+
+      {/* Recording Audio Subheading */}
+      {showRecordingText && (
+        <div className="absolute top-0 left-0 text-red-600 font-bold text-lg animate-pulse px-4 py-2">
+          Recording Audio
+        </div>
+      )}
 
       {/* Interviewer Section */}
       <h2 className="text-2xl font-semibold mb-4">Interviewer</h2>
@@ -156,11 +172,24 @@ function InterviewPage() {
         <canvas ref={intervieweeCanvasRef} width="600" height="150" className="border mb-5"></canvas>
       </div>
 
-      {isRecording ? (
-        <button onClick={stopRecording} className="bg-red-500 text-white px-4 py-2 rounded">Stop Recording</button>
-      ) : (
-        <button onClick={startRecording} className="bg-green-500 text-white px-4 py-2 rounded">Start Recording</button>
-      )}
+      {/* Start and Stop Recording Buttons */}
+      <div className="flex justify-center">
+        {isRecording ? (
+          <button
+            onClick={stopRecording}
+            className="bg-red-500 text-white px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-red-300"
+          >
+            Stop Recording
+          </button>
+        ) : (
+          <button
+            onClick={startRecording}
+            className="bg-green-500 text-white px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-300"
+          >
+            Start Recording
+          </button>
+        )}
+      </div>
     </div>
   );
 }

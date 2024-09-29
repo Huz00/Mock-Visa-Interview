@@ -1,0 +1,37 @@
+{
+  "name": "visa-mock-interview",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "@headlessui/react": "^2.1.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.2.1",
+    "tailwindcss": "^3.4.13",
+    "wavesurfer.js": "^7.8.6"
+  },
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.25.1",
+    "eslint": "^7.32.0",
+    "eslint-config-react-app": "^7.0.1",
+    "react-scripts": "^5.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
